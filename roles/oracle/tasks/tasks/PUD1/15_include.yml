@@ -1,0 +1,57 @@
+--- 
+# проверка № 15
+
+    - name: ПУД1 | проверка наличия строки include
+      become: yes
+      shell: " egrep '^[[:space:]]*#*[[:space:]]*(include|includedir){1}[[:space:]]*[/]{1}etc[/]{1}sudoers[.]{1}d[[:space:]]*$' '/etc/sudoers' | wc -l" 
+      # changed_when: false
+      # failed_when: false
+      # ignore_errors: true
+      register: var_include_exists
+      tags:
+        - include
+
+    - name: ПУД1 | печать наличия строки include
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_allowed_user_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          # - "{{ (var_string_exists.stdout_lines != []) | ternary('',  '')}}"          # кол-во строк
+          # - "{{ (var_string_exists.stdout != '0') | ternary('yes',  'no')}}"          # кол-во строк
+          - "found include/includedir: {{ (var_include_exists.stdout == '0') | ternary('false', 'true')}}"          # кол-во строк
+          # - "found: {{ (var_include_exists.stdout)}}"          # кол-во строк
+      ignore_errors: true
+      # when: var_include_exists is defined
+      tags:
+        - include
+
+    - name: ПУД1 | проверка "директива неактивна" include/includedir
+      become: yes
+      shell: "egrep '^[[:space:]]*#?(include|includedir){1}[[:space:]]*[/]{1}etc[/]{1}sudoers[.]{1}d[[:space:]]*$' '/etc/sudoers' | wc -l"
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_include_active
+      when: var_include_exists.stdout != '0'
+      tags:
+        - include
+
+    - name: ПУД1 | печать "директива неактивна" include/includedir
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_allowed_user_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          # - "{{ (var_string_exists.stdout_lines != []) | ternary('',  '')}}"          # кол-во строк
+          # - "{{ (var_string_exists.stdout != '0') | ternary('yes',  'no')}}"          # кол-во строк
+          - "inactive include/includedir: {{ (var_include_active.stdout == '0' ) | ternary('true', 'false')}}"          # 
+          # - "active: {{ (var_include_active.stdout)}}"          # 
+      ignore_errors: true
+      when: var_include_exists.stdout != '0'
+      tags:
+        - include
+
+    - name: ПУД1 | загрузка файла
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/sudoers"
+      tags:
+        - include

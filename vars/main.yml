@@ -1,0 +1,107 @@
+---
+# test_var: ['123test', 'asgag', 'tjyj']
+
+# строкка поиска в pam_wheel
+
+pam_wheel_pattern: ^auth[[:space:]]*required[[:space:]]*pam_wheel.so$
+
+#тестовый вариант 
+#pam_wheel_pattern: auth[[:space:]]*required[[:space:]]*pam_wheel.so
+
+# список правил для проверки качества пароля
+# каждая стока содержит одну проверку
+# каждая строка состоит из трех элементов
+# при проведении проверки они объединяются, с использоваением пробельных символов
+
+pwquality_var: [['retry','=',10],
+               ['minlen','=',32],
+               ['lcredit','=',-1],
+               ['ucredit','=',-1],
+               ['dcredit','=',-1],
+               ['ocredit','=',-1],
+               ['forcece_for_root','',''],
+               ['reject_username','','']
+               ]
+
+# pwquality_var2: [['retry','=',0],
+#      ['minlen','=',0],
+#      ['lcredit','=',0],
+#      ['ucredit','=',0],
+#      ['dcredit','=',0],
+#      ['ocredit','=',0],
+#      ['enforce_for_root','',''],
+#      ['reject_username','','']
+#      ]
+
+# pwquality_var1: [['retry',10],
+#      ['minlen',32],
+#      ['lcredit',-1],
+#      ['ucredit',-1],
+#      ['dcredit',-1],
+#      ['ocredit',-1],
+#      ['enforce_for_root',''],
+#      ['reject_username','']
+#      ]
+
+# список правил для проверки требования к времени жизни пароля
+# каждая стока содержит одну проверку
+# каждая строка состоит из трех элементов
+# при проведении проверки они объединяются, с использоваением пробельных символов
+
+login_defs_var: [['PASS_MIN_DAYS',1],
+                ['PASS_WARN_AGE',14],
+                ['LOGIN_RETRIES',10],
+                ['LOGIN_TIMEOUT',1800]
+               ]
+
+# login_defs_var1: [['PASS_MIN_DAYS',0],
+#      ['PASS_WARN_AGE',7],
+#      ['LOGIN_RETRIES',10],
+#      ['LOGIN_TIMEOUT',1800]
+#      ]
+
+# переменная для проверки правил задаваемых в pam.d
+#system_auth_var: [['рassword required pam_pwhistory.so remember=24 pam_unix.so sha512 shadow use_authtok','','']]
+
+system_auth_var: [['рassword','','']]
+
+# в переменной задается перечень объектов для которых производится провера 
+# настройки  контроля доступа
+
+getfacl_var: ['/etc/crontab',]
+
+user_audit_var: ['user','kigor']
+
+# имена конфигурацианного файла apache  используемого при проверках по по 10.1.8.1
+# данное имя может зависеть от операционной системы
+# или на одоном хосте может быть расположено несколько сайтав проверки осуществляются для всех
+
+apache_conf_name: ['/etc/httpd/conf/httpd.conf',]
+
+# имя файла лога apache в котором проверяется требования
+
+apache_log_name: ['/var/log/apache2/access.log._11',]
+
+# system-auth vars
+
+password_auth_exists: '^[[:space:]]*#*[[:space:]]*password[[:space:]]*required[[:space:]]*pam_pwhistory\.so[[:space:]]*remember[[:space:]]*=[[:space:]]*24[[:space:]]*$'
+password_auth_active: '^[[:space:]]*password[[:space:]]*required[[:space:]]*pam_pwhistory\.so[[:space:]]*remember[[:space:]]*=[[:space:]]*24[[:space:]]*$'
+
+pam_unix_exists: '^[[:space:]]*#*[[:space:]]*pam_unix\.so[[:space:]]*sha512[[:space:]]*shadow[[:space:]]*use_authtok[[:space:]]*$'
+pam_unix_active: '^[[:space:]]*pam_unix\.so[[:space:]]*sha512[[:space:]]*shadow[[:space:]]*use_authtok[[:space:]]*$'
+
+# egrep ^[[:space:]]*password[[:space:]]*required[[:space:]]*pam_pwhistory\.so[[:space:]]*remember[[:space:]]*=[[:space:]]*24[[:space:]]*$
+
+pswd_auth_1: "grep -v ^# /etc/pam.d/common-password | grep  '^[[:space:]]*password[[:space:]]*required[[:space:]]*pam_pwhistory.so[[:space:]]*remember[[:space:]]*=[[:space:]]*24[[:space:]]*$'"
+pam_unix_1: "grep -v ^# /etc/pam.d/common-password | egrep '^[[:space:]]*password[[:space:]]*(sufficient|required)[[:space:]]*pam_unix.so[[:space:]]*(gost12_512|sha512)[[:space:]]*shadow[[:space:]]*use_authtok[[:space:]]*$'"
+pam_unix_2: "grep -v ^# /etc/pam.d/common-password | egrep '^[[:space:]]*password[[:space:]]*requisite[[:space:]]*pam_pwquality.so[[:space:]]*.*$'"
+
+params_regex: "[[:space:]]*{{item[0] | quote}}[[:space:]]*{{item[1] | quote}}[[:space:]]*{{item[2] | quote}}[[:space:]]*"
+
+etalon_params: [
+'password required pam_pwhistory.so remember=24',
+'password   (sufficient|required) pam_unix.so (gost12_512|sha512) shadow use_authtok',
+'password   requisite pam_pwquality.so local_users_only retry=10 minlen=32 lcredit=-1 ucredit=-1 dcredit=-1 ocredit=-1 enforce_for_root reject_username'
+] 
+
+log_var: ./all_info/{{ansible_host}}/logs/sum_{{ansible_host}}.txt

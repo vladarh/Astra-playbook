@@ -1,0 +1,81 @@
+---
+
+    - name: ПУД1 Сохранить список пользователей в sssd с разрешённым входом
+      become: yes
+      shell: "grep ^simple_allow_users /etc/sssd/sssd.conf | sed 's/^.*=//' | tr ',' '\n' | tr -d ' \r\t' | sort -n"
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      no_log: true
+      register: var_get_allowed_user
+      tags:
+        - ad_user_list
+
+    - name: ПУД1 Вывод списка пользователей в sssd с разрешённым входом
+      debug:
+        msg: 
+          - "     "
+          - "---------------------список УЗ--------------------"
+          - "{{ var_get_allowed_user.stdout_lines  }}"
+          - "--------------------------------------------------"
+      ignore_errors: true
+      tags:
+        - ad_user_list
+
+    - name: ПУД1 Сохранение эталонного списка пользователей с разрешённым входом
+      become: yes
+      # путь к файлу прописать!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      # >>>>>>>>>>>>>>>>|||||||||||||||||||||||||||||||||||||||<<<<<<<<<
+      command: sort -n "{{ playbook_dir }}/files/tmp/ad_user"  #Вывод отсортированного по алфавиту списка эталонных пользователей
+      changed_when: false
+      failed_when: false
+      ignore_errors: true 
+      delegate_to: localhost
+      register: var_get_allowed_user_etalon # сохранение вывода в переменную
+      tags:
+        - ad_user_list
+
+    # - name: ПУД1 Вывод эталонного списка пользователей с разрешённым входом
+    #   debug:
+    #     msg: "{{ var_get_allowed_user_etalon.stdout_lines }}"
+    #   ignore_errors: true
+    #   tags:
+    #     - ad_user_list
+
+    - name: ПУД1 | Сохранение содержимого "переменных списков" в виде списка
+      become: yes
+      set_fact:
+        # verification_list: "{{ var_get_userlist.stdout_lines }}"
+        # etalon_list: "{{ var_get_userlist_etalon.stdout_lines }}"
+        var_allowed_user_not_in_etalon: "{{ var_get_allowed_user.stdout_lines | difference(var_get_allowed_user_etalon.stdout_lines)}}" # строки "списка разрешенных пользователей" НЕ содержащиеся в "эталоном списке разрешённых"
+      tags:
+        - ad_user_list
+  
+    - name: ПУД1 | Вывод строк НЕ содержащихся в эталонном списке
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_allowed_user_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          - "     "
+          - "--------------список НЕЭТАЛОННЫХ УЗ---------------"
+          - "{{ var_allowed_user_not_in_etalon }}"          #
+          - "--------------------------------------------------"
+
+      ignore_errors: true
+      when: var_get_allowed_user # исполнение TASK, если "cписок пользователей" не пустой
+      tags:
+        - ad_user_list
+
+    - name: ПУД1 | загрузка файла /etc/sssd/sssd.conf
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/sssd/sssd.conf"
+      tags:
+        - ad_user_list
+
+
+    - name: summary +
+      shell: "printf '%-20s %15s\n' 'ad_user_list => ' {{(var_allowed_user_not_in_etalon == []) | ternary('1', '0')}} | tee -a  {{log_var}}"
+      delegate_to: localhost
+      tags:
+        - always

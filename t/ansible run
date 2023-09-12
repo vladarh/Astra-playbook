@@ -1,0 +1,3 @@
+ansible-playbook -i inventory start.yml -e 'ansible_python_interpreter=/usr/bin/python3' --tags logrotate
+  # -e для работы python на удалённом хосте -i использование inventory
+ansible-playbook -l local start.yml --tags wheel_1

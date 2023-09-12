@@ -1,0 +1,93 @@
+---
+
+    - name: ПРУ 4 | проверка, что /etc/cron.daily/swap_wipe ЕСТЬ
+      become: yes
+      stat: 
+        path: "/etc/cron.daily/swap_wipe"
+      changed_when: false
+      failed_when: false
+      # ignore_errors: true
+      register: var_swap_exists
+      tags:
+        - swap
+
+    - name: ПРУ 4 | печать, что /etc/cron.daily/swap_wipe ЕСТЬ
+      debug: 
+        msg:
+          - "{{var_swap_exists.stat.exists}}"
+      tags:
+        - swap
+
+    - name: ПРУ 4 | чтение swap_wipe эталона
+      become: yes
+      shell: "cat ./files/tmp/swap_wipe"
+      changed_when: false
+      delegate_to: localhost
+      failed_when: false
+      # ignore_errors: true
+      register: var_swap_etalon
+      tags:
+        - swap
+
+    - name: ПРУ 4 | чтение swap_wipe хоста
+      become: yes
+      shell: "cat /etc/cron.daily/swap_wipe"
+      changed_when: false
+      failed_when: false
+      # ignore_errors: true
+      register: var_swap_dest
+      tags:
+        - swap
+
+
+    # - name: ПРУ 4 | печать swap_etalon 
+    #   debug: 
+    #     msg:
+    #       - "{{var_swap_etalon.stdout_lines}}"
+    #   tags:
+    #     - swap
+  
+    - name: ПРУ4 | загрузка файла 
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_host}}/"
+        src: "/etc/cron.daily/swap_wipe"
+      register: var_swap_download
+      tags:
+        - swap
+
+    # - name: ПРУ4 | переменные swap
+    #   become: yes
+    #   set_fact:
+    #     # verification_list: "{{ var_get_userlist.stdout_lines }}"
+    #     # etalon_list: "{{ var_get_userlist_etalon.stdout_lines }}"
+    #     before: "{{ var_swap_etalon.stdout_lines }}"
+    #     after: "{{ var_swap_dest.stdout_lines }}"
+    #   tags:
+    #     - swap
+  
+    # - name: ПРУ 4 | swap_wipe diff
+    #   become: yes
+    #   ansible.utils.fact_diff:
+    #     before: "{{ before }}"
+    #     after: "{{ after }}"
+    #   # fact_diff: 
+    #   #   before: "{{before}}"
+    #   #   after: "{{after}}"
+    #   changed_when: false
+    #   delegate_to: localhost
+    #   failed_when: false
+    #   # ignore_errors: true
+    #   register: var_swap_diff
+    #   tags:
+    #     - swap
+
+    - name: ПРУ4 | печать diff
+      debug: 
+        msg:
+          - "{{(var_swap_etalon.stdout_lines)[2:] | difference(var_swap_dest.stdout_lines)}}"
+          # - "{{var_swap_dest.stdout}}"
+          # - "{{diff }}"
+      tags:
+        - swap
+  

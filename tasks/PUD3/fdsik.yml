@@ -1,0 +1,25 @@
+--- 
+# ПУД 3  
+
+    - name: ПУД3 |fdisk
+      become: yes
+      shell: "fdisk -l "
+      changed_when: false
+      failed_when: false
+      # ignore_errors: true
+      register: var_fdisk
+      tags:
+        - fdisk
+
+    - name: ПУД3 | печать fdsik
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_allowed_user_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          # - "{{ (var_string_exists.stdout_lines != []) | ternary('',  '')}}"          # кол-во строк
+          # - "{{ (var_string_exists.stdout != '0') | ternary('yes',  'no')}}"          # кол-во строк
+          # - "found: {{ (var_dir_is_empty.stdout != [] ) | ternary('true',  'false')}}"          # кол-во строк
+          - "{{ (var_fdisk.stdout_lines)}}"          # кол-во строк
+      ignore_errors: true
+      when: var_fdisk is defined
+      tags:
+        - fdisk

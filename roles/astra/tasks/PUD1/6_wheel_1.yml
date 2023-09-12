@@ -1,0 +1,64 @@
+---
+
+    - name: ПУД1 | проверка наличия строки auth required pam_wheel.so
+      become: yes
+      shell: "if egrep -q ^[[:space:]]*#?[[:space:]]*auth[[:space:]]+required[[:space:]]+pam_wheel[.]{1}so[[:space:]]*$ /etc/pam.d/su ; then echo да ; else echo нет ; fi" # 
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_string_exists
+      tags:
+        - wheel_1
+
+    - name: ПУД1 | печать наличия строки
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_allowed_user_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          # - "{{ (var_string_exists.stdout_lines != []) | ternary('',  '')}}"          # кол-во строк
+          # - "{{ (var_string_exists.stdout != '0') | ternary('yes',  'no')}}"          # кол-во строк
+          - "   поиск в /etc/pam.d/su                          "
+          - "----------[эталон] есть/активен => да/нет----------"
+          - "[auth required pam_wheel.so] есть => {{ (var_string_exists.stdout) }}           "          #
+          - "-----------------проверка что //-----^^^----------"
+
+      ignore_errors: true
+      when: var_string_exists is defined
+      tags:
+        - wheel_1
+
+    - name: ПУД1 | проверка активности строки
+      become: yes
+      shell: "if egrep -q ^[[:space:]]*auth[[:space:]]+required[[:space:]]+pam_wheel[.]{1}so[[:space:]]*$ /etc/pam.d/su ; then echo да ; else echo нет ; fi" # то же самое но со строками без #
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_string_active
+      when: var_string_exists.stdout != 'нет'
+      tags:
+        - wheel_1
+
+    - name: ПУД1 | печать активности строки
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_allowed_user_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          # - "{{ (var_string_exists.stdout_lines != []) | ternary('',  '')}}"          # кол-во строк
+          # - "{{ (var_string_exists.stdout != '0') | ternary('yes',  'no')}}"          # кол-во строк
+          - "   поиск в /etc/pam.d/su                          "
+          - "----------[эталон] есть/активен => да/нет----------"
+          - "[auth required pam_wheel.so] активен => {{ (var_string_active.stdout) }}"          # кол-во строк
+          - "-----------------проверка что //-----^^^----------"
+
+      ignore_errors: true
+      when: var_string_exists.stdout != 'нет'
+      tags:
+        - wheel_1
+
+
+    - name: ПУД1 | загрузка файла
+      become: true
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/pam.d/su"
+      tags:
+        - wheel_1

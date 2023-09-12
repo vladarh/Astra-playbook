@@ -1,0 +1,24 @@
+local:
+  hosts:
+    localhost:
+      ansible_connection: local
+
+tst:
+  hosts:
+    192.168.43.41:
+      ansible_connection: ssh
+      ansible_host: 192.168.43.41
+      ansible_python_interpreter: /usr/bin/python3
+      ansible_user: ansibenode
+      ansible_ssh_pass: 123456
+      ansible_become_password: 123456
+
+tst1:
+  hosts:
+    192.168.48.161:
+      ansible_become_password: Password20
+      ansible_connection: ssh
+      ansible_host: 192.168.48.161
+      ansible_python_interpreter: /usr/bin/python3
+      ansible_ssh_pass: Password20
+      ansible_user: astra

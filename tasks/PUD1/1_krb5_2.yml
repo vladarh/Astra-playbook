@@ -1,0 +1,79 @@
+---
+
+    - name: ПУД1 | save "наличие строки krb5_realm = ROSNEFT.RU"
+      become: yes
+      shell: 'if egrep -q "^[[:space:]]*#*[[:space:]]*krb5_realm[[:space:]]*=[[:space:]]*ROSNEFT\.RU[[:space:]]*$" /etc/sssd/sssd.conf; then echo да; else echo нет; fi'
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_krb5
+      tags:
+        - krb5_2
+
+
+    - name: ПУД1 | печать "наличие строки krb5_realm = ROSNEFT.RU"
+      debug: 
+        msg: 
+          - "  "
+          - "---------------Проверка домена Роснефть-------------  "
+          - "[krb5_realm = ROSNEFT.RU] существует => {{var_krb5.stdout}}         "          # кол-во строк
+          - "----------------------------------------------------  "
+          # - "  "
+      ignore_errors: true
+      when: var_krb5 is defined
+      tags:
+        - krb5_2
+
+    # - name: проверка активности если существует
+    #   block:
+
+    - name: ПУД1 | проверка "активности строки krb5_realm = ROSNEFT.RU"
+      become: yes
+      shell: 'if egrep -q "^[[:space:]]*krb5_realm[[:space:]]*=[[:space:]]*ROSNEFT\.RU[[:space:]]*$" /etc/sssd/sssd.conf; then echo да; else echo нет; fi'
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_krb5_active
+      tags:
+        - krb5_2
+
+    - name: ПУД1 | save krb5.conf
+      become: yes
+      shell: 'grep "^[[:space:]]*krb5_realm[[:space:]]*=.*$" /etc/sssd/sssd.conf'
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_krb5_value
+      tags:
+        - krb5_2
+
+    - name: ПУД1 | печать "активности строки krb5_realm = ROSNEFT.RU"
+      debug: 
+        msg: 
+          - "  "
+          - "--------------------домен активен--------------------  "
+          - "[krb5_realm = ROSNEFT.RU] активна => {{var_krb5_active.stdout}}           "          # кол-во строк
+          - "-----------------------------------------------------  "
+          # - "  "
+      ignore_errors: true
+      when: var_krb5 is defined
+      tags:
+        - krb5_2
+
+      # when: var_krb5.stdout != 'нет'
+    
+
+    - name: ПУД1 | загрузка файла /etc/sssd/sssd.conf
+      ignore_errors: true
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/sssd/sssd.conf"
+      tags:
+        - krb5_2
+
+    - name: summary +
+      shell: "printf '%-20s %15s\n' 'krb5_2 => ' {{(var_krb5.stdout == 'да') | ternary((var_krb5_active.stdout == 'да') | ternary('1', '0'), '0')}} | tee -a {{log_var}}"
+      delegate_to: localhost
+      tags:
+        - always

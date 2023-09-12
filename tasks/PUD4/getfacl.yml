@@ -1,0 +1,23 @@
+--- 
+# ПУД 4 матрица доступов
+
+    - name: ПУД1 | резульатат getfacl
+      become: yes
+      shell: "getfacl cat /var/log/audit/audit.log"
+      changed_when: false
+      failed_when: false
+      # ignore_errors: true
+      register: var_getfacl
+      tags:
+        - getfacl
+
+    - name: ПУД1 | печать getfacl
+      debug: 
+        msg: 
+          - "---------------getfacl output----------------"
+          - "{{ (var_getfacl.stdout_lines) }}"
+          - "---------------------------------------------"
+      ignore_errors: true
+      when: var_getfacl is defined
+      tags:
+        - getfacl

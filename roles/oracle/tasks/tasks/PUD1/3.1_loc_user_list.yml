@@ -1,0 +1,65 @@
+---
+    - name: ПУД1 | Сохранить список пользователей в переменную
+      become: yes
+      shell: 'getent passwd | grep -v "nologin" | grep -v "false" | cut -d: -f1 | sort -n '
+      changed_when: false
+      failed_when: false
+      ignore_errors: true
+      register: var_get_userlist
+      tags:
+        - loc_user_list
+
+    # - name: ПУД1 Вывод списка пользователей
+    #   debug:
+    #     msg: "{{ var_get_userlist.stdout_lines  }}"
+    #   ignore_errors: true
+    #   tags:
+    #     - loc_user_list
+
+    - name: ПУД1 | Сохраниение эталонного списка в переменную
+      become: yes
+      command: sort -n "{{ playbook_dir }}/files/tmp/user_list"  #Вывод отсортированного по алфавиту списка эталонных пользователей
+      changed_when: false
+      failed_when: false
+      ignore_errors: true 
+      register: var_get_userlist_etalon # сохранение выводва в переменную
+      tags:
+        - loc_user_list
+
+    # - name: ПУД1 Вывод эталонного списка пользователей
+    #   debug:
+    #     msg: "{{ var_get_userlist_etalon.stdout_lines }}"
+    #   ignore_errors: true
+    #   tags:
+    #     - loc_user_list
+
+    - name: ПУД1 | Сохранение содержимого "переменных списков" в виде списка
+      become: yes
+      set_fact:
+        # verfication_list: "{{ var_get_userlist.stdout_lines }}"    # список - список пользователей | для сравнения с помощью встроенной функции "difference"(список - 
+        # etalon_list: "{{ var_get_userlist_etalon.stdout_lines }}"  # список - эталонный список    | стркутура данных вроде массива, в данном случае массива строк) 
+        var_userlist_not_in_etalon: "{{ var_get_userlist.stdout_lines | difference(var_get_userlist_etalon.stdout_lines)}}" # строки "списка пользователей" НЕ содержащиеся в "эталоном списке"
+      tags:
+        - loc_user_list
+  
+    - name: ПУД1 | Вывод строк НЕ содержащихся в эталонном списке
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_userlist_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          - "     "
+          - "-------------список НЕЭТАЛОННЫХ УЗ----------------"
+          - "{{ var_userlist_not_in_etalon }}"          # кол-во строк
+          - "--------------------------------------------------"
+      ignore_errors: true
+      when: var_get_userlist # исполнение TASK, если "cписок пользователей" не пустой
+      tags:
+        - loc_user_list
+
+
+    - name: ПУД1 | загрузка файла
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/passwd"
+      tags:
+        - loc_user_list
