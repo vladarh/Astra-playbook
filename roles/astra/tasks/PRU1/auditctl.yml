@@ -1,0 +1,41 @@
+---
+
+    - name: ПРУ1 | сохранение правил ноды
+      become: yes
+      shell: "auditctl -l"
+      changed_when: false
+      failed_when: false
+      # ignore_errors: true
+      register: var_auditctl_user
+      tags:
+        - auditctl
+
+    - name: ПРУ1 | сохранение эталонных правил
+      become: yes
+      shell: "cat ./files/tmp/audit_rules"
+      changed_when: false
+      delegate_to: localhost
+      failed_when: false
+      # ignore_errors: true
+      register: var_auditctl_etalon
+      # when:  var_auditctl_user.stdout_lines != []
+      tags:
+        - auditctl
+
+    - name: ПРУ1 | загрузка файла
+      local_action:
+        module: copy
+        content: "{{var_auditctl_user.stdout}}"
+        dest: "{{playbook_dir}}/all_info/{{ansible_host}}/auditctl"
+      register: var_auditctl_download
+      tags:
+        - auditctl
+
+    - name: ПРУ1 | разница в правилах аудита audit_rules
+      debug: 
+        msg:
+          - "{{(var_auditctl_etalon.stdout_lines)[2:] | difference(var_auditctl_user.stdout_lines)}}"
+      when: var_auditctl_user.stdout_lines != []
+      tags:
+        - auditctl
+        - write_log

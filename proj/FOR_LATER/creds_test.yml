@@ -1,0 +1,58 @@
+# https://www.reddit.com/r/ansible/comments/vtyngt/question_ssh_with_password_authentication_in/
+# https://jwkenney.github.io/creative-abuse-of-var-prompt/
+
+
+- hosts: all
+  gather_facts:  yes 
+  ignore_errors: true
+  become_method: sudo
+  vars_prompt:
+    - name: username
+      prompt: "username"
+      private: no
+
+    - name: ansible_ssh_pass
+      prompt: "What is your password:"
+      unsafe: yes
+      # encrypt: "sha512_crypt"
+      # confirm: yes
+      # salt_size: 7
+
+  remote_user: "{{username}}"
+  # set_fact:
+    # ansible_ssh_pass: "{{}}"
+    # ansible_ssh_pass: ""
+
+  # become_password: "{{password}}"
+  tasks:
+    - name: 
+      debug:
+       msg: "{{username}}:{{ansible_ssh_pass}}"
+       # tags:
+        # - always
+
+
+
+
+
+  # tasks:
+  #   - name: Prompt SSH password if necessary
+  #     when: ansible_password is undefined
+  #     block:
+  #       - name: Conditionally prompt for ssh/sudo password
+  #         ansible.builtin.pause:
+  #           prompt: "Password for {{ ansible_user_id }}@{{ ansible_host }}"
+  #           echo: false
+  #         register: password_prompt
+  #         no_log: true
+
+  #       - name: Set ansible_password
+  #         ansible.builtin.set_fact:
+  #           ansible_password: "{{ password_prompt.user_input }}"
+  #         no_log: true
+
+  #   - name: Set ansible_become_password
+  #     ansible.builtin.set_fact:
+  #       ansible_become_password: "{{ ansible_password }}"
+  #     no_log: true
+  #     when: ansible_become_password is undefined

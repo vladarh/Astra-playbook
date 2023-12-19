@@ -1,0 +1,17 @@
+--- 
+
+- name: Astra Linux (Debian) tasks
+  hosts: all 
+  gather_facts: true
+  # ignore_errors: true
+  become: yes
+  become_method: sudo
+
+  tasks: 
+
+    - name: anisble_facts
+      debug:
+        # msg: "{{ ansible_facts['nodename'] }}"
+        var: ansible_facts
+      # tags:
+      #   - write_log

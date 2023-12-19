@@ -1,0 +1,42 @@
+---
+
+profile_login_defs_var:      [['PASS_MIN_DAYS',  1],
+                              ['PASS_WARN_AGE', 14],
+                              ['PASS_MAX_DAYS', 60]
+                              ]
+
+profile_common_password_var: [['ucredit', '=',   1],
+                              ['lcredit', '=',  14],
+                              ['dcredit', '=',  14],
+                              ['ocredit', '=',  60],
+                              ['remember','=',  24]
+                              ]
+
+profile_common_auth_var:     [['per_user'   , 'deny', '=',   10],
+                              ['unlock_time', '='   ,  1800, '']
+                              ]
+
+false_nologin_var:             'grep -q -E "^{{item}}:.*:(nologin|false)$" /etc/passwd '
+
+mask_var:                      'grep -q "0000" /parsecfs/mode_mask'
+
+
+sshd_config_var:             [['Protocol',               2],
+                              ['LoginGraceTime',      '3m'],
+                              ['PermitRootLogin',     'no'],
+                              ['IgnoreRhosts',          3m],
+                              ['MaxAuthTries',          3m],
+                              ['PermitEmptyPasswords',  3m],
+                              ['UsePAM',                3m],
+                              ['TCPKeepAlive',          3m],
+                              ['X11Forwarding',         3m],
+                              ]
+
+
+# sudo systemctl isenabled astra-console-lock 1> $dir_data/astra-console.txt 2>> $dir_data/astra-console.txt
+# if sudo grep -q "enabled" $dir_data/astra-console.txt
+# then
+# echo "Доступ к консоли для пользователей ограничен" 
+# else
+# echo "Доступ к консоли для пользователей не ограничен" 
+# fi

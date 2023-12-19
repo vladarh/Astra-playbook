@@ -1,0 +1,81 @@
+--- 
+# ПРУ 1 ausearch_file
+# https://github.com/inspec/inspec/issues/768
+# ausearch --input-logs 
+# Use the log file location from auditd.conf as input for searching
+# -sv no | success status (yes|no)
+
+    - name: ПРУ3 | ----
+      become: yes
+      command: sort -n "{{ playbook_dir }}/files/tmp/local_user_list"  #Вывод отсортированного по алфавиту списка эталонных пользователей
+      changed_when: false
+      failed_when: false
+      delegate_to: localhost
+      ignore_errors: true 
+      register: var_get_userlist # сохранение выводва в переменную
+      tags:
+        - ausearch_file
+# -sv no 
+    - name: ПРУ3 | Регистрация попыток доступа к защищаемым файлам 
+      become: yes
+      shell:
+        cmd: |
+          # echo "USER __________  '{{item}}'  __________"
+          echo '                                                                           '
+          echo '--------------------     OPEN PASSWD SUCCESS     --------------------         '
+          echo '                                                                           '
+          ausearch -i --input-logs -f /etc/passwd -sc 257 -sv yes -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo '--------------------     OPEN PASSWD FAILURE     --------------------         '
+          echo '                                                                           '
+          ausearch -i --input-logs -f /etc/passwd -sc 257 -sv no -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo '--------------------     OPEN SUDOERS SUCCESS     --------------------         '
+          echo '                                                                           '
+          ausearch -i --input-logs -f /etc/sudoers -sc 257 -sv yes -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo '--------------------     OPEN SUDOERS FAILURE     --------------------         '
+          echo '                                                                           '
+          ausearch -i --input-logs -f /etc/sudoers -sc 257 -sv no -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo ----------------------     OPEN SHADOW SUCCESS ----------------------------
+          echo '                                                                           '
+          ausearch -i --input-logs -f /etc/shadow  -sc 257 -sv yes -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo ----------------------     OPEN SHADOW FAILURE ----------------------------
+          echo '                                                                           '
+          ausearch -i --input-logs -f /etc/shadow  -sc 257 -sv no -ua  $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+      changed_when: false
+      failed_when: false
+      loop: "{{var_get_userlist.stdout_lines}}"
+      # ignore_errors: true
+      # args:
+      #   executable: /bin/bash
+      register: var_user_auth
+      tags:
+        - ausearch_file
+        - write_log
+
+    - name: ПРУ3 | Регистрация попыток доступа к защищаемым файлам passwd/sudoers/shadow
+      debug: 
+        msg: 
+          - "---------------------------------"
+          - " USER  =>   '{{item.item}}'   ----"
+          - "----------------------------------"
+          - "{{item.stdout_lines}}"
+      ignore_errors: true
+      # loop: "{{ | debug}}"
+      loop: "{{var_user_auth.results}}"
+      # loop: "{{(var_user_audit)[:] | selectattr('stdout', '!=', '\'\'') | map(attribute='stdout') | list}}"
+      # when: var_get_userlist is defined
+      tags:
+       - ausearch_file
+       - write_log
+       

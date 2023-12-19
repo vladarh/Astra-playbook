@@ -1,0 +1,38 @@
+---
+    - block:
+
+        - name: проверка существования файла
+          raw: "test -f '{{ item[0] }}'"
+          failed_when: var_result.rc
+          register: var_result
+          tags:
+            - fetch
+
+        - name: запись файла
+          raw: "cat '{{ item[0] }}'"
+          failed_when: var_content.rc not in [0, 1]
+          register: var_content
+          tags:
+            - fetch
+
+        - local_action:
+              module: template
+              src: "fetch.j2"
+              dest: "{{ playbook_dir }}/all_info/{{ ansible_ssh_host }}/{{ item[1] }}"
+          tags:
+            - fetch
+
+        - include_tasks: fetch_files/fetch_stat.yml
+          vars:
+            task_tag: "{% set tg = (item.0 | quote) %}{{ tg }}"
+            task_res: "true"
+          tags:
+            - fetch
+
+      rescue:
+
+        - include_tasks: fetch_files/rescue.yml
+          vars:
+            task_tag_rescue: "{% set tgr =  (item.0 | quote) %}{{tgr}}"
+          tags:
+            - always

@@ -1,0 +1,50 @@
+--- 
+    - block:
+
+        - name: ПР | проверка, что файл "/usr/share/fly-wm/theme/default.themerc" есть
+          become: yes
+          raw: "test -f /usr/share/fly-wm/theme/default.themerc"
+          failed_when: var_file_exists.rc
+          register: var_file_exists
+          tags:
+            - pr_screen
+
+        - name: ПР | проверка параметров "/usr/share/fly-wm/theme/default.themerc"
+          become: yes
+          raw: 'egrep ".*ScreenSaverDelay[[:space:]]*=[[:space:]]*600.*$" /usr/share/fly-wm/theme/default.themerc'
+          failed_when: var_pr_screen.rc not in [0, 1] 
+          register: var_pr_screen
+          tags:
+            - pr_screen
+
+        - name: ПР | результат провекрки
+          debug:
+            msg: 
+              - "  "
+              - "------------------------------------------------------  "
+              - " 'ScreenSaverDelay=600' => {{ (not var_pr_screen.rc) | ternary('да', 'нет') ) }}"
+              - "------------------------------------------------------  "
+          tags:
+            - pr_screen
+            - write_log
+
+        - name: результат прохождения проверок
+          set_fact:
+            task_result: "{% set passed = ( not var_krb5_active.rc ) %}{{ passed }}"
+          tags:
+            - pr_screen
+
+        - include_tasks: ../summary/sum.yml
+          vars:
+            task_tag: "{% set var_tag = 'pr_screen' %}{{ var_tag }}"
+            task_res: "{{ task_result }}"
+          tags:
+            - pr_screen
+
+      rescue:
+
+        - include_tasks: ../summary/rescue.yml
+          vars:
+            task_tag_rescue: "{% set var_resuce = 'pr_screen' %}{{  var_resuce }}"
+          tags:
+            - always

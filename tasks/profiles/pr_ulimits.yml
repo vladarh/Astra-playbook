@@ -1,0 +1,42 @@
+---
+    - block:
+
+        - name: ПР | проверка статуса astra-ulimits-control
+          become: yes
+          raw: "systemctl is-enabled astra-ulimits-control"
+          failed_when: var_astra_ulimits.rc not in [0, 1, 2, 3] # 0 - работает, 1-3 - не работает (подробнее в доках systemctl [LSB]), 4 - сервис не найден
+          register: var_astra_ulimits
+          tags:
+            - pr_ulimits
+
+        - name: ПР | статус astra-ulimits-control
+          debug:
+            msg: 
+              - "  "
+              - "------------------------------|||---------------------  "
+              - " astra-ulimits-control => {{ ( not var_astra_ulimits.rc ) | ternary('enabled', 'disabled') }}"
+              - "------------------------------^^----------------------  "
+          tags:
+            - pr_ulimits
+            - write_log
+
+        - name: результат прохождения проверок
+          set_fact:
+            task_result: "{% set passed = ( not var_astra_ulimits.rc ) %}{{ passed }}"
+          tags:
+            - pr_ulimits
+
+        - include_tasks: ../summary/sum.yml
+          vars:
+            task_tag: "{% set tg = 'pr_ulimits' %}{{ tg }}"
+            task_res: "{{ task_result }}"
+          tags:
+            - pr_ulimits
+
+      rescue:
+
+        - include_tasks: ../summary/rescue.yml
+          vars:
+            task_tag_rescue: "{% set tgr = 'pr_ulimits' %}{{ tgr }}"
+          tags:
+            - always

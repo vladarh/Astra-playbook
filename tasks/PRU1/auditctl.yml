@@ -1,0 +1,67 @@
+---
+    - block:
+
+        # !!! ВАЖНО !!!
+        # не все правила возможно проверить через, проврека статуса через "auditctl -s" для тех которые не отображаются "auditctl -l"
+        # не использовать для проверок
+
+        - name: ПРУ 1 | сохранение правил ноды
+          become: yes
+          raw: "auditctl -l"
+          failed_when: var_auditctl_user.rc
+          register: var_auditctl_user
+          tags:
+            - auditctl
+          
+        - name: ПРУ 1 | сохранение эталонных правил
+          become: yes
+          shell: "cat ./files/tmp/audit_rules"
+          delegate_to: localhost
+          register: var_auditctl_etalon
+          tags:
+            - auditctl
+
+        - name: ПРУ 1 | загрузка файла
+          local_action:
+            module: copy
+            content: "{{var_auditctl_user.stdout}}"
+            dest: "{{playbook_dir}}/all_info/{{ansible_host}}/auditctl"
+          register: var_auditctl_download
+          tags:
+            - auditctl
+        
+        - name: ПРУ 1 | разница в правилах аудита audit_rules 
+          set_fact:
+            var_audit_diff: "{% set audit_diff = ( (var_auditctl_etalon.stdout_lines)[2:] | difference(var_auditctl_user.stdout_lines) ) %}{{ audit_diff }}"
+          tags:
+            - auditctl
+
+        - name: ПРУ 1 | разница в правилах аудита audit_rules
+          debug: 
+            msg:
+              - "{{ var_audit_diff }}"
+              # - "{{ var_audit_diff == [] }}"
+          tags:
+            - auditctl
+            - write_log
+
+        - name: результат прохождения проверок
+          set_fact:
+            task_result: "{% set passed = ( var_audit_diff == [] ) %}{{passed}}"
+          tags:
+            - auditctl
+
+        - include_tasks: ../summary/sum.yml
+          vars:
+            task_tag: "{% set tg = 'auditctl' %}{{ tg }}"
+            task_res: "{{ task_result }}"
+          tags:
+            - auditctl
+
+      rescue:
+
+        - include_tasks: ../summary/rescue.yml
+          vars:
+            task_tag_rescue: "{% set tgr = 'auditctl' %}{{tgr}}"
+          tags:
+            - always

@@ -1,0 +1,65 @@
+--- 
+# ПРУ 1 aureport_auth
+# https://github.com/inspec/inspec/issues/768
+# ausearch --input-logs 
+# Use the log file location from auditd.conf as input for searching
+# -sv no | success status (yes|no)
+
+    - name: ПРУ1 | Сохранение списка пользователей в переменную
+      become: yes
+      command: sort -n "{{ playbook_dir }}/files/tmp/ad_user"  #Вывод отсортированного по алфавиту списка эталонных пользователей
+      changed_when: false
+      failed_when: false
+      delegate_to: localhost
+      ignore_errors: true 
+      register: var_get_userlist # сохранение выводва в переменную
+      tags:
+        - aureport_auth
+# -sv no 
+    - name: ПРУ1 | Регистрация списка пользователей в переменную ad_user
+      become: yes
+      shell:
+        cmd: |
+          # echo "USER __________  '{{item}}'  __________"
+          echo '                                                                           '
+          echo '                                                                           '
+          echo ---------------------------- USER_AUTH SUCCESS ----------------------------
+          echo '                                                                           '
+          ausearch  -i --input-logs -m USER_AUTH -sv yes -ui $( id -u {{item}} ) | tail -n 7
+          echo '                                                                           '
+          echo '                                                                           '
+          echo ---------------------------- USER_AUTH FAILURE ----------------------------
+          echo '                                                                           '
+          ausearch  -i --input-logs -m USER_AUTH -sv no -ui $( id -u {{item}} ) | tail -n 7
+          echo '                                                                           '
+          echo '                                                                           '
+          echo '         --------------------     USER_END     --------------------         '
+          echo '                                                                           '
+          ausearch   -i --input-logs -m USER_END -ui $( id -u {{item}} ) | tail -n 7
+      changed_when: false
+      failed_when: false
+      loop: "{{var_get_userlist.stdout_lines}}"
+      # ignore_errors: true
+      # args:
+      #   executable: /bin/bash
+      register: var_user_auth
+      tags:
+        - aureport_auth
+        - write_log
+
+    - name: ПРУ1 | Регистрация попыток входа/выхода из списка пользователей ad_user
+      debug: 
+        msg: 
+          - "---------------------------------"
+          - " USER  =>   '{{item.item}}'   ----"
+          - "----------------------------------"
+          - "{{item.stdout_lines}}"
+      ignore_errors: true
+      # loop: "{{ | debug}}"
+      loop: "{{var_user_auth.results}}"
+      # loop: "{{(var_user_audit)[:] | selectattr('stdout', '!=', '\'\'') | map(attribute='stdout') | list}}"
+      # when: var_get_userlist is defined
+      tags:
+       - aureport_auth
+       - write_log
+       

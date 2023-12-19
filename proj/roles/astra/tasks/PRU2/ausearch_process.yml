@@ -1,0 +1,71 @@
+--- 
+# ПРУ 1 ausearch_process
+# https://github.com/inspec/inspec/issues/1968
+# ausearch --input-logs 
+# Use the log file location from auditd.conf as input for searching
+# -sv no | success status (yes|no)
+
+    - name: ПРУ2 | ----
+      become: yes
+      command: sort -n "{{ playbook_dir }}/files/tmp/ad_user"  #Вывод отсортированного по алфавиту списка эталонных пользователей
+      changed_when: false
+      failed_when: false
+      delegate_to: localhost
+      ignore_errors: true 
+      register: var_get_userlist # сохранение выводва в переменную
+      tags:
+        - ausearch_process
+# -sv no 
+    - name: ПРУ2 | Регистрация запуска/завершения процессов для пользователей из ad_user
+      become: yes
+      shell:
+        cmd: |
+          # echo "USER __________  '{{item}}'  __________"
+          echo '                                                                           '
+          echo '--------------------     PROCESS SUCCESS     --------------------         '
+          echo '                                                                           '
+          ausearch   -i --input-logs -sc 2519 -sv yes -ui $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo '--------------------     PROCESS FAILURE     --------------------         '
+          echo '                                                                           '
+          ausearch   -i --input-logs -sc 2519 -sv no -ui $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo ---------------------------- KILL SUCCESS ----------------------------
+          echo '                                                                           '
+          ausearch  -i --input-logs -sc kill -sv yes -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+          echo ---------------------------- KILL FAIL  ----------------------------
+          echo '                                                                           '
+          ausearch  -i --input-logs -sc kill -sv no -ua $( id -u {{item}} ) | tail -n 19
+          echo '                                                                           '
+          echo '                                                                           '
+      changed_when: false
+      failed_when: false
+      loop: "{{var_get_userlist.stdout_lines}}"
+      # ignore_errors: true
+      # args:
+      #   executable: /bin/bash
+      register: var_user_auth
+      tags:
+        - ausearch_process
+        - write_log
+
+    - name: ПРУ2 | Регистрация запуска/завершения процессов
+      debug: 
+        msg: 
+          - "---------------------------------"
+          - " USER  =>   '{{item.item}}'   ----"
+          - "----------------------------------"
+          - "{{item.stdout_lines}}"
+      ignore_errors: true
+      # loop: "{{ | debug}}"
+      loop: "{{var_user_auth.results}}"
+      # loop: "{{(var_user_audit)[:] | selectattr('stdout', '!=', '\'\'') | map(attribute='stdout') | list}}"
+      # when: var_get_userlist is defined
+      tags:
+        - ausearch_process
+        - write_log
+       

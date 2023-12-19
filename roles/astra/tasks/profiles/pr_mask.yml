@@ -1,0 +1,40 @@
+
+    - name: ПР | параметры эталонного локального пароля /etc/login.defs
+      become: yes
+      shell: 'egrep "^[[:space:]]*{{item[0] | quote}}[[:space:]]+{{item[1] | quote}}[[:space:]]*" /etc/login.defs'
+      # shell: " echo {{ item[0]}}{{ item[1]}}"
+      failed_when: false
+      ignore_errors: true
+      loop: "{{ profile_login_defs_var }}"
+      register: var_pr_mask
+      tags:
+        - pr_mask
+        - write_log
+
+    - name: ПР | проверка параметров пароля /etc/login.defs
+      debug:
+        msg: 
+          - "  "
+          - "------------------------------|||---------------------  "
+          - "---->>>> {{item[0][0]}} {{'%-4s' | format(item[0][1])}} : {{ (item[1].stdout_lines != []) | ternary('yes', 'no')}} <<<<----------------"
+          - "------------------------------^^----------------------  "
+          - "  "
+          # - "res {{item[0]}} ---- {{item[1]}} ---- {{item[2]}} "
+      ignore_errors: true
+      loop: "{{ profile_login_defs_var[:] | zip(var_pr_mask.results) | list}}"
+      loop_control:
+        label: "login.defs"
+        # index_var: idx
+      # when: var_pr_mask is defined
+      tags:
+        - pr_mask
+        - write_log
+
+    - name: ПР | загрузка файла
+      ignore_errors: true
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/login.defs"
+      tags:
+        - pr_mask

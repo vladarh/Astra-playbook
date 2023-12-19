@@ -1,0 +1,42 @@
+---
+    - block:
+    
+        - name: ПР | проверка параметров astra-console-lock
+          become: yes
+          raw: "systemctl is-active astra-console-lock"
+          failed_when: var_astra_console.rc not in [0, 1, 2, 3] # 0 - работает, 1-3 - не работает (подробнее в доках systemctl [LSB]), 4 - сервис не найден
+          register: var_astra_console
+          tags:
+            - pr_astra_console
+
+        - name: ПР | статус astra-console-lock
+          debug:
+            msg: 
+              - "  "
+              - "------------------------------|||---------------------  "
+              - " astra-console-lock => {{ ( not var_astra_console.rc ) | ternary('active', 'disabled/inactive')}}"
+              - "------------------------------^^----------------------  "
+          tags:
+            - pr_astra_console
+            - write_log
+
+        - name: результат прохождения проверок
+          set_fact:
+            task_result: "{% set passed = ( not var_astra_console.rc ) %}{{ passed }}"
+          tags:
+            - pr_astra_console
+
+        - include_tasks: ../summary/sum.yml
+          vars:
+            task_tag: "{% set tg = 'pr_astra_console' %}{{ tg }}"
+            task_res: "{{ task_result }}"
+          tags:
+            - pr_astra_console
+
+      rescue:
+
+        - include_tasks: ../summary/rescue.yml
+          vars:
+            task_tag_rescue: "{% set tgr = 'pr_astra_console' %}{{ tgr }}"
+          tags:
+            - always

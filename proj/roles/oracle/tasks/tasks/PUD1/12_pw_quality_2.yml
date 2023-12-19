@@ -1,0 +1,29 @@
+--- 
+# 12
+    - name: ПУД1 | проверка параметров shadow
+      become: yes
+      shell: "cat /etc/shadow | if egrep -v -q ':!'; then echo no; else echo yes; fi"
+      changed_when: false
+      failed_when: false
+      # ignore_errors: true
+      register: var_shadow_encrypted
+      tags:
+        - pw_quality_2
+
+    - name: ПУД1 | печать пользователей без пароля shadow
+      debug: 
+        msg: 
+          # - "Total rows : {{ var_userlist_not_in_etalon | length }}" # вывод строк не содержащихся в эталонном файле
+          - "All passwords are encrypted: {{ var_shadow_encrypted.stdout }}"          # кол-во строк
+      ignore_errors: true
+      # when: var_shadow_encrypted # исполнение TASK, если "cписок пользователей" не пустой
+      tags:
+        - pw_quality_2
+
+    - name: ПУД1 | загрузка файла
+      fetch:
+        flat: yes
+        dest: "{{playbook_dir}}/all_info/{{ansible_ssh_host}}/"
+        src: "/etc/shadow"
+      tags:
+        - pw_quality_2

@@ -1,0 +1,35 @@
+---
+
+        - name: summary present (y/n)
+          delegate_to: localhost 
+          lineinfile: 
+            path: "{{fetch_var}}"
+            line: ""
+            backrefs: yes
+            regexp: '.*{{task_tag_rescue}}.*' 
+          check_mode: yes
+          ignore_errors: true
+          register: var_presence
+          tags:
+            - always
+            
+        - name: replace line
+          delegate_to: localhost
+          register: var_replace
+          lineinfile: 
+            path: "{{fetch_var}}"
+            regexp: '{{task_tag_rescue}}.*' 
+            line: '{{"%-40s %15s" | format(task_tag_rescue + " => ", "false")}}'
+            backrefs: yes
+          when: var_presence.changed
+          tags:
+            - always
+
+        - name: add line
+          delegate_to: localhost
+          lineinfile:
+            dest: "{{fetch_var}}"
+            line: '{{"%-40s %15s" | format(task_tag_rescue + " => ", "false")}}'
+          when: not var_presence.changed
+          tags:
+            - always
