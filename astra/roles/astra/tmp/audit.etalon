@@ -1,3 +1,0 @@
--w /etc/shadow -p wa
--w /etc/passwd -p wa
-
