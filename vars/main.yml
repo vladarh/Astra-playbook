@@ -23,26 +23,6 @@ pwquality_var: [['retry','=',10],
                ['reject_username','','']
                ]
 
-# pwquality_var2: [['retry','=',0],
-#      ['minlen','=',0],
-#      ['lcredit','=',0],
-#      ['ucredit','=',0],
-#      ['dcredit','=',0],
-#      ['ocredit','=',0],
-#      ['enforce_for_root','',''],
-#      ['reject_username','','']
-#      ]
-
-# pwquality_var1: [['retry',10],
-#      ['minlen',32],
-#      ['lcredit',-1],
-#      ['ucredit',-1],
-#      ['dcredit',-1],
-#      ['ocredit',-1],
-#      ['enforce_for_root',''],
-#      ['reject_username','']
-#      ]
-
 # список правил для проверки требования к времени жизни пароля
 # каждая стока содержит одну проверку
 # каждая строка состоит из трех элементов
@@ -52,13 +32,7 @@ login_defs_var: [['PASS_MIN_DAYS',1],
                 ['PASS_WARN_AGE',14],
                 ['LOGIN_RETRIES',10],
                 ['LOGIN_TIMEOUT',1800]
-               ]
-
-# login_defs_var1: [['PASS_MIN_DAYS',0],
-#      ['PASS_WARN_AGE',7],
-#      ['LOGIN_RETRIES',10],
-#      ['LOGIN_TIMEOUT',1800]
-#      ]
+                ]
 
 # переменная для проверки правил задаваемых в pam.d
 #system_auth_var: [['рassword required pam_pwhistory.so remember=24 pam_unix.so sha512 shadow use_authtok','','']]

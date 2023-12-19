@@ -51,7 +51,7 @@
     - name: ПУД1 | запись содержимого в файл
       copy: 
         content: "{{var_sudoers_output.stdout}}"
-        dest: "{{playbook_dir}}/all_info/{{var_host_ip.stdout}}/ls_sudoersd.txt"
+        dest: "{{playbook_di}}/all_info/{{var_host_ip.stdout}}/ls_sudoersd.txt"
       delegate_to: localhost
       tags:
         - sudoersd

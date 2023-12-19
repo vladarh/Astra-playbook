@@ -60,3 +60,4 @@
       # when: var_get_userlist is defined
       tags:
        - aureport_auth
+       
