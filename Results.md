@@ -2,8 +2,8 @@
 [Дерево](https://tree.nathanfriend.io/?s=(%27options!(%27fancy!B~fullPath!false~trailingSlash!B~rootDot!B)~C(%27C%27all_infoG1*logs8errors91792793F.0.0.9n78results0BFfalseFerrorFexecuted78E_statA78logA.log8sumA751525354*.*.*.5nG2G36.6.6.Gn%27)~version!%271%27)*6%20-host_address_08%205*Eed_file_6%5Cn%207.txt8*%2090task_A_((-1))BtrueCsource!EfetchF70G6-%01GFECBA987650-*)
 ```bash
 .
-└── all_info/
-    ├── host_address_1/
+└── all_info/                    // директория хранения результатов исполнения на всех хостах
+    ├── host_address_1/          // результаты на хосте `./all_info/host_address_1`, где `host_address_1` (ip или домен)
     │   ├── logs/
     │   │   ├── errors/
     │   │   │   ├── task_1.txt
@@ -36,3 +36,6 @@
     ├── .
     └── host_address_n
 ```
+1. После прогона в корне проекта будет создана директория ```./all_info``` с результатами исполнения.
+2. Её структруа `адрес хоста (домен или ip)` -> скачанныe файлы + директория ```logs```
+3. is 
