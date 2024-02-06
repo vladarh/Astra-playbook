@@ -3,7 +3,7 @@
 ```bash
 .
 └── all_info/                    // директория хранения результатов исполнения на всех хостах
-    ├── host_address_1/          // результаты на хосте `./all_info/host_address_1`, где `host_address_1` (ip или домен)
+    ├── host_address_1/          // результаты на хосте `./all_info/host_address_1`, где `host_address_1` (ip или домен) + выгрженный файлы
     │   ├── logs/                // директория результатов исполнения таск
     │   │   ├── errors/          // директория с информацие об ошибках в тасках
     │   │   │   ├── task_1.txt   // ошибка в таске с тегом (task_1), хранит имя таски в внутри которой произошла ошибка, тэг под которым была запущена и отладочную информацию
@@ -12,16 +12,16 @@
     │   │   │   ├── .
     │   │   │   ├── .
     │   │   │   ├── .
-    │   │   │   └── task_n.txt
-    │   │   ├── results/
+    │   │   │   └── task_n.txt   
+    │   │   ├── results/         // сгруппированные по статусам таски
     │   │   │   ├── true.txt
     │   │   │   ├── false.txt
     │   │   │   ├── error.txt
     │   │   │   └── executed.txt
-    │   │   ├── fetch_stat_{{host_address_1}}.txt
-    │   │   ├── log_{{host_address_1}}.log
-    │   │   └── sum_{{host_address_1}}.txt
-    │   ├── fetched_file_1
+    │   │   ├── fetch_stat_{{host_address_1}}.txt     // статус по выгрузке каждого файла
+    │   │   ├── log_{{host_address_1}}.log            // кастомный лог по таскам 
+    │   │   └── sum_{{host_address_1}}.txt            // статусы всех таск
+    │   ├── fetched_file_1       // выгрженный файл fetched_file_1
     │   ├── fetched_file_2
     │   ├── fetched_file_3
     │   ├── fetched_file_4
